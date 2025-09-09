@@ -19,4 +19,43 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const allTodos = await pool.query("SELECT * FROM todo");
+    res.json(allTodos.rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server error");
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { description, completed } = req.body;
+    const updateTodo = await pool.query(
+      "UPDATE todo set description = $1, completed = $2 WHERE todo_id = $3 RETURNING *",
+      [description, completed, id]
+    );
+    res.json({
+      message: "Todo updated",
+      todo: updateTodo.rows[0],
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server error");
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query("DELETE FROM todo WHERE todo_id = $1", [id]);
+    res.json("Todo deleted");
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server error");
+  }
+});
+
 export default router;
