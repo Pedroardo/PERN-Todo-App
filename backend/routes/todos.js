@@ -35,7 +35,7 @@ router.put("/:id", async (req, res) => {
     const { description, completed } = req.body;
     const updateTodo = await pool.query(
       "UPDATE todo set description = $1, completed = $2 WHERE todo_id = $3 RETURNING *",
-      [description, completed, id]
+      [description, completed || false, id]
     );
     res.json({
       message: "Todo updated",
