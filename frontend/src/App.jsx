@@ -12,13 +12,20 @@ function App() {
   const [todos, setTodos] = useState([]);
   const [editTodo, setEditTodo] = useState(null);
   const [editedText, setEditedText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const getTodos = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await axios.get("http://localhost:5000/todos");
       setTodos(res.data);
     } catch (error) {
       console.log(error);
+      setError("Failed to fetch the data");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -28,14 +35,15 @@ function App() {
 
   const onSubmitForm = async (e) => {
     e.preventDefault(); // to prevent page refresh after submit
+    if (!description.trim()) return;
     try {
-      await axios.post("http://localhost:5000/todos", {
+      setError(null);
+      const res = await axios.post("http://localhost:5000/todos", {
         description,
         completed: false,
       });
-
+      setTodos([...todos, res.data]);
       setDescription("");
-      getTodos();
     } catch (error) {
       console.error(error);
     }
@@ -43,24 +51,43 @@ function App() {
 
   const saveEdit = async (id) => {
     try {
+      setError(null);
+
+      const currentTodo = todos.find((todo) => todo.todo_id === id);
+      const trimmedText = editedText.trim();
+
+      if (currentTodo.description === trimmedText) {
+        setEditTodo(null);
+        setEditedText("");
+        return;
+      }
+
       await axios.put(`http://localhost:5000/todos/${id}`, {
         description: editedText,
       });
       setEditTodo(null);
       setDescription("");
-      getTodos();
+      setTodos(
+        todos.map((todo) =>
+          todo.todo_id === id
+            ? { ...todo, description: editedText, completed: false }
+            : todo
+        )
+      );
     } catch (error) {
       console.log(error.message);
+      setError("Failed to update the data");
     }
   };
 
   const deleteTodo = async (id) => {
     try {
+      setError(null);
       await axios.delete(`http://localhost:5000/todos/${id}`);
       setTodos(todos.filter((todo) => todo.todo_id !== id));
-      getTodos();
     } catch (error) {
       console.log(error.message);
+      setError("Failed to delete the data");
     }
   };
 
@@ -84,7 +111,11 @@ function App() {
     <div className="min-h-screen items-center flex justify-center bg-gray-800 p-4 ">
       <div className="bg-gray-50 rounded-2xl shadow-xl w-full max-w-lg p-8">
         <h1 className="text-4xl font-bold uppercase mb-8">PERN todo app</h1>
-
+        {error && (
+          <div className="bg-red-100 text-red-600 p-3 rounded-md mb-4">
+            {error}
+          </div>
+        )}
         <form
           onSubmit={onSubmitForm}
           className="flex items-center gap-2 shadow-sm p-2 rounded-lg mb-6"
@@ -102,7 +133,11 @@ function App() {
           </button>
         </form>
         <div>
-          {todos.length === 0 ? (
+          {loading ? (
+            <div className="">
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          ) : todos.length === 0 ? (
             <p className="text-center text-gray-400">No todos yet</p>
           ) : (
             <div className="flex gap-4 flex-col">
