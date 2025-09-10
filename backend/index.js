@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "https://pern-todo-frontend-xi.vercel.app/",
+    origin: "https://pern-todo-frontend-xi.vercel.app",
   })
 );
 app.use(express.json());
