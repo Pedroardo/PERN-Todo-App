@@ -24,7 +24,7 @@ function App() {
       const res = await axios.get(`${API_URL}/todos`);
       setTodos(res.data);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
       setError("Failed to fetch the data");
     } finally {
       setLoading(false);
