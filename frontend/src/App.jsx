@@ -7,6 +7,8 @@ import {
 } from "react-icons/md";
 import { FaTrash } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
+import { API_URL } from "./api.js";
+
 function App() {
   const [description, setDescription] = useState("");
   const [todos, setTodos] = useState([]);
@@ -19,7 +21,7 @@ function App() {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get("http://localhost:5000/todos");
+      const res = await axios.get(`${API_URL}/todos`);
       setTodos(res.data);
     } catch (error) {
       console.log(error);
@@ -38,7 +40,7 @@ function App() {
     if (!description.trim()) return;
     try {
       setError(null);
-      const res = await axios.post("http://localhost:5000/todos", {
+      const res = await axios.post(`${API_URL}/todos`, {
         description,
         completed: false,
       });
@@ -62,7 +64,7 @@ function App() {
         return;
       }
 
-      await axios.put(`http://localhost:5000/todos/${id}`, {
+      await axios.put(`${API_URL}/todos/${id}`, {
         description: editedText,
       });
       setEditTodo(null);
@@ -83,7 +85,7 @@ function App() {
   const deleteTodo = async (id) => {
     try {
       setError(null);
-      await axios.delete(`http://localhost:5000/todos/${id}`);
+      await axios.delete(`${API_URL}/todos/${id}`);
       setTodos(todos.filter((todo) => todo.todo_id !== id));
     } catch (error) {
       console.log(error.message);
@@ -94,7 +96,7 @@ function App() {
   const toggleCompleted = async (id) => {
     try {
       const todo = todos.find((todo) => todo.todo_id === id);
-      await axios.put(`http://localhost:5000/todos/${id}`, {
+      await axios.put(`${API_URL}/todos/${id}`, {
         description: todo.description,
         completed: !todo.completed,
       });
